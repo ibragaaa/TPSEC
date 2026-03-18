@@ -520,8 +520,29 @@ doc.add_paragraph(
 doc.add_paragraph("Étape 1 — Première tentative sans keystore :", style='List Bullet')
 doc.add_paragraph(
     "Si on compile et exécute le programme directement sans spécifier de keystore, "
-    "le serveur ne peut pas démarrer correctement car il n'a pas de certificat SSL à "
-    "présenter aux clients. On obtient une erreur liée à l'absence de keystore."
+    "le serveur démarre mais ne peut pas établir de connexion SSL avec les clients. "
+    "Quand un client tente de se connecter, on obtient l'erreur suivante :"
+)
+
+p = doc.add_paragraph()
+run = p.add_run(
+    "$ javac HTTPSServerExample_01.java\n"
+    "$ java HTTPSServerExample_01\n\n"
+    "Client connection made\n"
+    "javax.net.ssl.SSLHandshakeException:\n"
+    "  (handshake_failure) No available authentication scheme\n"
+    "  at sun.security.ssl.Alert.createSSLException(Alert.java:130)\n"
+    "  at sun.security.ssl.TransportContext.fatal(...)\n"
+    "  ..."
+)
+run.font.name = 'Consolas'
+run.font.size = Pt(9)
+
+doc.add_paragraph(
+    "Le serveur accepte la connexion TCP mais échoue lors du handshake SSL car il n'a "
+    "aucun certificat à présenter au client. L'erreur « No available authentication scheme » "
+    "indique qu'il n'existe aucun mécanisme d'authentification disponible sans keystore. "
+    "Côté client (curl ou navigateur), on obtient une erreur « sslv3 alert handshake failure »."
 )
 
 doc.add_paragraph("Étape 2 — Création du certificat serveur :", style='List Bullet')
@@ -557,15 +578,23 @@ run.font.size = Pt(9)
 
 doc.add_paragraph("Étape 4 — Connexion depuis un navigateur :", style='List Bullet')
 doc.add_paragraph(
-    "En ouvrant Firefox à l'adresse https://localhost:12345, on obtient un avertissement de "
-    "sécurité : « Warning: Potential Security Risk Ahead ». C'est normal car le certificat "
+    "En ouvrant le navigateur à l'adresse https://localhost:12345, on obtient un avertissement de "
+    "sécurité : « Your connection is not private » avec le code d'erreur "
+    "NET::ERR_CERT_AUTHORITY_INVALID. C'est normal car le certificat "
     "est auto-signé et n'a pas été émis par une autorité de certification reconnue. Le navigateur "
-    "ne peut pas vérifier l'identité du serveur."
+    "ne peut pas vérifier l'identité du serveur. La barre d'adresse affiche « Not secure » en rouge."
 )
 doc.add_paragraph(
-    "En acceptant le risque et en ajoutant une exception de sécurité, on peut finalement "
-    "se connecter au serveur et on voit la page HTML avec le message « Hello Students ». "
-    "Le serveur affiche aussi dans la console « Client connection made » et la requête GET du navigateur."
+    "En cliquant sur « Advanced » (Avancé), le navigateur affiche un message supplémentaire : "
+    "« This server could not prove that it is localhost; its security certificate is not trusted "
+    "by your computer's operating system. » avec un lien « Proceed to localhost (unsafe) »."
+)
+doc.add_paragraph(
+    "En acceptant le risque et en cliquant sur ce lien, on peut finalement "
+    "se connecter au serveur et on voit la page HTML avec le message « Hello Students » "
+    "en titre H1. Le serveur affiche dans la console « Client connection made » et la "
+    "requête GET du navigateur. La connexion HTTPS est bien établie malgré le certificat "
+    "auto-signé."
 )
 
 doc.add_paragraph("Vérification avec curl :")
